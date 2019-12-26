@@ -12,7 +12,7 @@ class MealDetailScreen extends StatefulWidget {
 }
 
 class _MealDetailScreenState extends State<MealDetailScreen> {
-  bool isFavorite;
+  bool _isFavorite;
 
   @override
   Widget build(BuildContext context) {
@@ -21,20 +21,18 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
     final String mealId = routeArgs['id'];
 
+    _isFavorite = routeArgs['isMealFavorite'](mealId);
+
     final Meal selectedMeal =
         DUMMY_MEALS.firstWhere((meal) => meal.id == mealId);
+
     final AppBar appBar = AppBar(
       title: Text(selectedMeal.title),
     );
 
     void _toggleFavorite() {
-      if (isFavorite) {
-        setState(() => isFavorite = false);
-        routeArgs['removeFavorite'](mealId);
-      } else {
-        setState(() => isFavorite = true);
-        routeArgs['addFavorite'](mealId);
-      }
+      setState(() => _isFavorite = !_isFavorite);
+      setState(() => routeArgs['toggleFavorite'](mealId));
     }
 
     Widget _buildSectionTitle(String title) => Container(
@@ -64,31 +62,17 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            Stack(children: <Widget>[
-              Container(
-                height: (MediaQuery.of(context).size.height -
-                        appBar.preferredSize.height -
-                        MediaQuery.of(context).padding.top) *
-                    .40,
-                width: double.infinity,
-                child: Image.network(
-                  selectedMeal.imageUrl,
-                  fit: BoxFit.cover,
-                ),
+            Container(
+              height: (MediaQuery.of(context).size.height -
+                      appBar.preferredSize.height -
+                      MediaQuery.of(context).padding.top) *
+                  .40,
+              width: double.infinity,
+              child: Image.network(
+                selectedMeal.imageUrl,
+                fit: BoxFit.cover,
               ),
-              Positioned(
-                bottom: 24,
-                right: 24,
-                child: IconButton(
-                  icon: Icon(
-                    isFavorite ? Icons.star : Icons.star_border,
-                    color: Colors.amberAccent,
-                    size: 48,
-                  ),
-                  onPressed: () => _toggleFavorite(),
-                ),
-              )
-            ]),
+            ),
             _buildSectionTitle('Ingredients'),
             _buildSectionContent(
               ListView.builder(
@@ -116,7 +100,6 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               itemBuilder: (ctx, i) => Column(
                 children: <Widget>[
                   ListTile(
-                    // contentPadding: EdgeInsets.all(8),
                     leading: CircleAvatar(
                       child: Text('# ${i + 1}'),
                     ),
@@ -129,6 +112,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             )),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: _isFavorite ? Icon(Icons.star) : Icon(Icons.star_border),
+        onPressed: _toggleFavorite,
       ),
       appBar: appBar,
     );

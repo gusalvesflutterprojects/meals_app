@@ -37,9 +37,9 @@ class Meal {
     @required this.duration,
     @required this.complexity,
     @required this.affordability,
-    this.isGlutenFree = false,
-    this.isLactoseFree = false,
-    this.isVegan = false,
-    this.isVegetarian = false,
+    @required this.isGlutenFree,
+    @required this.isLactoseFree,
+    @required this.isVegan,
+    @required this.isVegetarian,
   });
 }

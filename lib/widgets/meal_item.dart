@@ -10,9 +10,10 @@ class MealItem extends StatelessWidget {
   final int duration;
   final Complexity complexity;
   final Affordability affordability;
-  final Function addFavorite;
-  final Function removeFavorite;
-  final Function checkFavorite;
+  final Function toggleFavorite;
+  final Function isMealFavorite;
+  final Function removeMeal;
+  final bool fromFavoritesPage;
 
   MealItem({
     @required this.id,
@@ -21,9 +22,10 @@ class MealItem extends StatelessWidget {
     @required this.duration,
     @required this.complexity,
     @required this.affordability,
-    @required this.addFavorite,
-    @required this.removeFavorite,
-    this.checkFavorite,
+    @required this.toggleFavorite,
+    @required this.isMealFavorite,
+    this.removeMeal,
+    this.fromFavoritesPage = false,
   });
 
   String get complexityText {
@@ -61,9 +63,11 @@ class MealItem extends StatelessWidget {
   void selectMeal(BuildContext ctx) {
     Navigator.of(ctx).pushNamed(MealDetailScreen.routeName, arguments: {
       'id': id,
-      'addFavorite': addFavorite,
-      'removeFavorite': removeFavorite,
-      'isFavorite': checkFavorite is Function ? checkFavorite(id) : true,
+      'toggleFavorite': toggleFavorite,
+      'isMealFavorite': isMealFavorite,
+      'fromFavoritesPage': fromFavoritesPage,
+    }).then((result) {
+      if (result != null) removeMeal(result);
     });
   }
 

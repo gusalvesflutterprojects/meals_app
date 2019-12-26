@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import './categories_screen.dart';
@@ -12,38 +15,66 @@ class TabsScreen extends StatefulWidget {
 class _TabsScreenState extends State<TabsScreen> {
   int _currentPageIdx = 0;
   List<String> _favorites = ['m2', 'm3', 'm4'];
-
-  void _addFavorite(String mealId) {
-    setState(() => _favorites.add(mealId));
-  }
-
-  void _removeFavorite(String mealId) {
-    setState(
-        () => _favorites.removeWhere((favoriteId) => favoriteId == mealId));
-  }
-
-  bool _checkFavorite(String mealId) => _favorites.contains(mealId);
-
-  void _selectPage(int newPageIdx) =>
-      setState(() => _currentPageIdx = newPageIdx);
+  Map<String, bool> _filters = {
+    'isGlutenFree': false,
+    'isLactoseFree': false,
+    'isVegan': false,
+    'isVegetarian': false,
+  };
 
   @override
   Widget build(BuildContext context) {
+    HttpClient client = new HttpClient();
+    client.badCertificateCallback =
+        ((X509Certificate cert, String host, int port) {
+      final isValidHost = host == "api.my_app";
+      return isValidHost;
+    });
+
+    void _toggleFavorite(String mealId) {
+      int existingIndex =
+          _favorites.indexWhere((favoriteMealId) => favoriteMealId == mealId);
+
+      if (existingIndex >= 0)
+        setState(() => _favorites.removeAt(existingIndex));
+      else
+        setState(() => _favorites.add(mealId));
+    }
+
+    bool _isMealFavorite(String mealId) => _favorites.contains(mealId);
+
+    void _selectPage(int newPageIdx) =>
+        setState(() => _currentPageIdx = newPageIdx);
+
+    void _updateFilters(String filterName) {
+      setState(
+        () => _filters.update(filterName, (_) => !_filters[filterName]),
+      );
+    }
+
     List<Map<String, dynamic>> _pages = [
       {
         'title': 'Categories',
-        'page': CategoriesScreen(_addFavorite, _removeFavorite, _checkFavorite),
+        'page': CategoriesScreen(
+          _toggleFavorite,
+          _isMealFavorite,
+          _filters,
+        ),
       },
       {
         'title': 'Fucking best meals ever',
-        'page': FavoriteMealsScreen(_favorites, _addFavorite, _removeFavorite),
+        'page': FavoriteMealsScreen(
+          _favorites,
+          _toggleFavorite,
+          _isMealFavorite,
+        ),
       },
     ];
 
     return Scaffold(
       body: _pages[_currentPageIdx]['page'],
       appBar: AppBar(title: Text(_pages[_currentPageIdx]['title'])),
-      drawer: MainDrawer(),
+      drawer: MainDrawer(_filters, _updateFilters),
       bottomNavigationBar: BottomNavigationBar(
         elevation: 12,
         type: BottomNavigationBarType.shifting,
